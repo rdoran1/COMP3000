@@ -16,15 +16,15 @@ public class GunBehaviour : MonoBehaviour
     //Reference
     public Camera fpsCam;
     public Transform attackPoint;
-    public RaycastHit rayHit;
-    public LayerMask whatIsEnemy;
+
+    private LineRenderer laserLine;
 
     //graphics
-    public GameObject bulletHoleGraphic; //, muzzleFlash;
     public TextMeshProUGUI text;
 
     private void Awake()
     {
+        laserLine = GetComponent<LineRenderer>();
         bulletsLeft = magazineSize;
         readyToShoot = true;
     }
@@ -45,6 +45,8 @@ public class GunBehaviour : MonoBehaviour
         if (readyToShoot && shooting && !reloading && bulletsLeft > 0)
         {
             bulletsShot = bulletsPerTap;
+
+            laserLine.enabled = true;
             Shoot();
         }
     }
@@ -52,25 +54,29 @@ public class GunBehaviour : MonoBehaviour
     {
         readyToShoot = false;
 
-        //Spread
-        float x = Random.Range(-spread, spread);
-        float y = Random.Range(-spread, spread);
+        Vector3 direction = fpsCam.transform.forward;
+        Vector3 rayOrigin = fpsCam.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0));
+        RaycastHit hit;
 
-        //Calculate Direction with Spread
-        Vector3 direction = fpsCam.transform.forward + new Vector3(x, y, 0);
+        laserLine.SetPosition(0, attackPoint.position);
 
-        //RayCast
-        if (Physics.Raycast(fpsCam.transform.position, direction, out rayHit, range, whatIsEnemy))
+        if (Physics.Raycast(rayOrigin, direction, out hit, range))
         {
-            Debug.Log(rayHit.collider.name);
+            Debug.Log(hit.collider.name);
+            laserLine.SetPosition(1, hit.point);
+            //if (hit.collider.CompareTag("Enemy"))
+            //    hit.collider.GetComponent<EnemyScript>().TakeDamage(damage);
+            EnemyScript health = hit.collider.GetComponent<EnemyScript>();
 
-//            if (rayHit.collider.CompareTag("Enemy"))
-//                rayHit.collider.GetComponent<ShootingAi>().TakeDamage(damage);
+            if (health != null)
+            {
+                health.TakeDamage(damage);
+            }
         }
-
-        //Graphics
-        Instantiate(bulletHoleGraphic, rayHit.point, Quaternion.Euler(0, 180, 0));
-        //Instantiate(muzzleFlash, attackPoint.position, Quaternion.identity);
+        else
+        {
+            laserLine.SetPosition(1, rayOrigin + (direction * range));
+        }
 
         bulletsLeft--;
         bulletsShot--;
@@ -82,6 +88,7 @@ public class GunBehaviour : MonoBehaviour
     }
     private void ResetShot()
     {
+        laserLine.enabled = false;
         readyToShoot = true;
     }
     private void Reload()
