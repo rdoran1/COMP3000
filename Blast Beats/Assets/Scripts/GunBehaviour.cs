@@ -20,7 +20,7 @@ public class GunBehaviour : MonoBehaviour
     public LayerMask whatIsEnemy;
 
     //graphics
-    public GameObject muzzleFlash, bulletHoleGraphic;
+    public GameObject bulletHoleGraphic; //, muzzleFlash;
     public TextMeshProUGUI text;
 
     private void Awake()
@@ -70,7 +70,7 @@ public class GunBehaviour : MonoBehaviour
 
         //Graphics
         Instantiate(bulletHoleGraphic, rayHit.point, Quaternion.Euler(0, 180, 0));
-        Instantiate(muzzleFlash, attackPoint.position, Quaternion.identity);
+        //Instantiate(muzzleFlash, attackPoint.position, Quaternion.identity);
 
         bulletsLeft--;
         bulletsShot--;
